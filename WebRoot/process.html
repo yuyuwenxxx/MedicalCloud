@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://cdn.bootcdn.net/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/main.css">
+    <title>患者就医进程 - 医疗云系统</title>
+    <style>
+        /* 蓝色主色调样式 */
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e66d9, #0c57c2);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 600;
+        }
+        
+        .navbar {
+            background-color: #0d5fc9 !important;
+            border: none;
+            border-radius: 0;
+            margin-bottom: 0;
+        }
+        
+        .navbar-default .navbar-brand,
+        .navbar-default .navbar-nav > li > a {
+            color: white !important;
+        }
+        
+        .navbar-default .navbar-nav > li > a:hover,
+        .navbar-default .navbar-nav > li > a:focus {
+            background-color: #0a4eaa !important;
+            color: white !important;
+        }
+        
+        .process-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 30px auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 1200px;
+        }
+        
+        .process-title {
+            color: #0d5fc9;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+            font-weight: 600;
+        }
+        
+        /* 进度条样式 */
+        .progress-container {
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .progress-line-active {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            height: 4px;
+            background-color: #0d5fc9;
+            z-index: 2;
+            transition: width 1s ease;
+            width: 33.3%; /* 默认完成到问诊步骤 */
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 3;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 16.666%;
+            text-align: center;
+        }
+        
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .step-text {
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        
+        /* 已完成步骤样式 */
+        .progress-step.completed .step-circle {
+            background-color: #0d5fc9;
+            color: white;
+        }
+        
+        .progress-step.completed .step-text {
+            color: #0d5fc9;
+            font-weight: bold;
+        }
+        
+        /* 当前步骤样式 */
+        .progress-step.active .step-circle {
+            background-color: #0d5fc9;
+            color: white;
+            box-shadow: 0 0 0 5px rgba(13, 95, 201, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .progress-step.active .step-text {
+            color: #0d5fc9;
+            font-weight: bold;
+        }
+        
+        /* 步骤详情样式 */
+        .step-details {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f5f9ff;
+            border-left: 4px solid #0d5fc9;
+            border-radius: 4px;
+        }
+        
+        .step-details h3 {
+            color: #0d5fc9;
+            margin-top: 0;
+        }
+        
+        .next-step-info {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e3f2fd;
+            border-radius: 4px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .footer {
+            background-color: #0d5fc9;
+            color: white;
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .progress-step {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .progress-steps {
+                flex-direction: column;
+            }
+            
+            .progress-line,
+            .progress-line-active {
+                display: none;
+            }
+            
+            .header h1 {
+                font-size: 1.8em !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 系统头部 -->
+    <div class="header">
+        <div class="container">
+            <h1>医疗云系统</h1>
+            <p>智慧医疗，便捷服务</p>
+        </div>
+    </div>
+
+    <!-- 导航菜单 -->
+    <div class="servicePortfolio">
+        <div class="navbar navbar-default">
+            <div class="container">
+                <div class="navbar-header">
+                    <a href="login.html" class="navbar-brand">医疗云首页</a>
+                </div>
+                <ul class="nav navbar-nav">
+                    <li><a href="login.html">首页</a></li>
+                    <li><a href="login.html#registration">预约挂号</a></li>
+                    <li><a href="login.html#history">看病历史</a></li>
+                    <li><a href="login.html#profile">我的信息</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">登录</a></li>
+                    <li><a href="#">注册</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="container">
+        <div class="process-section">
+            <!-- 患者名字标题 -->
+            <h2 class="process-title" id="patientName">张三 的就医进程</h2>
+            
+            <!-- 进度条 -->
+            <div class="progress-container">
+                <div class="progress-line"></div>
+                <div class="progress-line-active" id="progressBar"></div>
+                
+                <ul class="progress-steps">
+                    <li class="progress-step completed" data-step="1">
+                        <div class="step-circle">📋</div>
+                        <div class="step-text">挂号</div>
+                    </li>
+                    <li class="progress-step active" data-step="2">
+                        <div class="step-circle">👨‍⚕️</div>
+                        <div class="step-text">问诊</div>
+                    </li>
+                    <li class="progress-step" data-step="3">
+                        <div class="step-circle">💳</div>
+                        <div class="step-text">收费</div>
+                    </li>
+                    <li class="progress-step" data-step="4">
+                        <div class="step-circle">💊</div>
+                        <div class="step-text">取药</div>
+                    </li>
+                    <li class="progress-step" data-step="5">
+                        <div class="step-circle">🔍</div>
+                        <div class="step-text">复查</div>
+                    </li>
+                    <li class="progress-step" data-step="6">
+                        <div class="step-circle">✅</div>
+                        <div class="step-text">完成</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 当前步骤详情 -->
+            <div class="step-details" id="currentStepDetails">
+                <h3>当前步骤：问诊</h3>
+                <p><strong>科室：</strong>内科</p>
+                <p><strong>医生：</strong>李医生</p>
+                <p><strong>诊室：</strong>内科诊室 3</p>
+                <p><strong>排队号：</strong>15号</p>
+                <p><strong>前方等待：</strong>3人</p>
+                <p><strong>预计时间：</strong>约30分钟后</p>
+            </div>
+            
+            <!-- 下一步提示 -->
+            <div class="next-step-info">
+                <h4>就诊提示</h4>
+                <ul>
+                    <li>请提前15分钟到达诊室门口等候</li>
+                    <li>请携带好您的身份证和医保卡</li>
+                    <li>进入诊室前请先测量体温并登记</li>
+                    <li>如有特殊情况请及时联系导诊台</li>
+                </ul>
+            </div>
+            
+            <!-- 按钮区域 -->
+            <div class="text-center" style="margin-top: 30px;">
+                <a href="login.html" class="btn btn-primary">返回首页</a>
+                <button class="btn btn-default" onclick="updateProgress()" style="margin-left: 20px;">模拟进度更新</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        医疗云系统 &copy; 2023 版权所有
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+        // 进度更新函数
+        function updateProgress() {
+            // 获取当前活动步骤
+            var currentStep = $('.progress-step.active');
+            var currentStepNum = parseInt(currentStep.attr('data-step'));
+            
+            // 如果还没有完成所有步骤
+            if (currentStepNum < 6) {
+                // 将当前步骤标记为已完成
+                currentStep.removeClass('active').addClass('completed');
+                
+                // 将下一步标记为活动状态
+                var nextStep = $('.progress-step[data-step="' + (currentStepNum + 1) + '"]');
+                nextStep.addClass('active');
+                
+                // 更新进度条
+                var progressPercent = (currentStepNum / 6) * 100;
+                $('#progressBar').css('width', progressPercent + '%');
+                
+                // 更新当前步骤详情
+                updateStepDetails(currentStepNum + 1);
+            } else {
+                alert('就医流程已完成！');
+            }
+        }
+        
+        // 更新步骤详情
+        function updateStepDetails(stepNum) {
+            var detailsContent = '';
+            var nextStepContent = '';
+            
+            switch(stepNum) {
+                case 1:
+                    detailsContent = '<h3>当前步骤：挂号</h3><p><strong>状态：</strong>正在办理挂号手续</p><p><strong>窗口：</strong>挂号窗口 2</p><p><strong>预计时间：</strong>约5分钟</p>';
+                    nextStepContent = '<h4>挂号提示</h4><ul><li>请准备好您的身份证或医保卡</li><li>挂号费用可现金或刷卡支付</li><li>如需预约其他科室请提前告知</li></ul>';
+                    break;
+                case 2:
+                    detailsContent = '<h3>当前步骤：问诊</h3><p><strong>科室：</strong>内科</p><p><strong>医生：</strong>李医生</p><p><strong>诊室：</strong>内科诊室 3</p><p><strong>排队号：</strong>15号</p><p><strong>前方等待：</strong>3人</p><p><strong>预计时间：</strong>约30分钟后</p>';
+                    nextStepContent = '<h4>就诊提示</h4><ul><li>请提前15分钟到达诊室门口等候</li><li>请携带好您的身份证和医保卡</li><li>进入诊室前请先测量体温并登记</li><li>如有特殊情况请及时联系导诊台</li></ul>';
+                    break;
+                case 3:
+                    detailsContent = '<h3>当前步骤：收费</h3><p><strong>收费项目：</strong>诊疗费、检查费</p><p><strong>总费用：</strong>¥156.00</p><p><strong>支付方式：</strong>支持现金、刷卡、微信、支付宝</p><p><strong>窗口：</strong>收费窗口 3</p>';
+                    nextStepContent = '<h4>缴费提示</h4><ul><li>请妥善保管好您的收费单据</li><li>医保患者请出示医保卡</li><li>如需发票请向收费员说明</li></ul>';
+                    break;
+                case 4:
+                    detailsContent = '<h3>当前步骤：取药</h3><p><strong>药房：</strong>西药房</p><p><strong>窗口：</strong>3号窗口</p><p><strong>药品数量：</strong>3种</p><p><strong>等待时间：</strong>约10分钟</p>';
+                    nextStepContent = '<h4>取药提示</h4><ul><li>请准备好您的处方单和缴费凭证</li><li>取药时请核对药品名称和数量</li><li>请向药师咨询用药方法和注意事项</li></ul>';
+                    break;
+                case 5:
+                    detailsContent = '<h3>当前步骤：复查</h3><p><strong>复查项目：</strong>血常规</p><p><strong>科室：</strong>检验科</p><p><strong>检查时间：</strong>3天后上午9:00</p><p><strong>注意事项：</strong>需空腹</p>';
+                    nextStepContent = '<h4>复查提示</h4><ul><li>请按时到达检验科</li><li>检查前一天晚上10点后请勿进食</li><li>携带好您的就诊卡和身份证</li></ul>';
+                    break;
+                case 6:
+                    detailsContent = '<h3>当前步骤：完成</h3><p><strong>就诊状态：</strong>已完成</p><p><strong>医嘱：</strong>注意休息，按时服药</p><p><strong>随访：</strong>我们将在一周后进行电话随访</p><p><strong>满意度调查：</strong>请扫描二维码参与满意度评价</p>';
+                    nextStepContent = '<h4>就诊完成</h4><ul><li>感谢您使用医疗云系统</li><li>如有不适请及时复诊</li><li>祝您健康愉快</li></ul>';
+                    break;
+            }
+            
+            $('#currentStepDetails').html(detailsContent);
+            $('.next-step-info').html(nextStepContent);
+        }
+        
+        // 页面加载完成后初始化
+        $(document).ready(function() {
+            // 可以在这里添加更多初始化代码
+            console.log('就医进程页面加载完成');
+        });
+    </script>
+</body>
+</html>
