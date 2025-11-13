@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医生端医疗流程管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f8ff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        h1 {
+            color: #2c3e50;
+        }
+        
+        .doctor-info {
+            text-align: right;
+            color: #666;
+        }
+        
+        .patient-list {
+            width: 300px;
+            float: left;
+            margin-right: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .patient-item {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .patient-item:hover {
+            background-color: #e8f4fc;
+            border-color: #3498db;
+        }
+        
+        .patient-item.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        .patient-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .patient-id {
+            font-size: 14px;
+            color: #777;
+        }
+        
+        .patient-stage {
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 3px 8px;
+            background-color: #f1c40f;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .main-content {
+            margin-left: 320px;
+            padding: 15px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background-color: #3498db;
+            z-index: 2;
+            transition: width 0.5s ease;
+        }
+        
+        .step {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            width: 14.28%;
+        }
+        
+        .step-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        
+        .step.active .step-circle {
+            background-color: #3498db;
+        }
+        
+        .step.completed .step-circle {
+            background-color: #2ecc71;
+        }
+        
+        .step-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .step.active .step-label {
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .stage {
+            display: none;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        
+        .stage.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .stage-title {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .patient-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 5px;
+        }
+        
+        .info-group {
+            flex: 1;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .btn-prev {
+            background-color: #95a5a6;
+        }
+        
+        .btn-prev:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .btn-next {
+            background-color: #3498db;
+        }
+        
+        .btn-complete {
+            background-color: #2ecc71;
+        }
+        
+        .btn-complete:hover {
+            background-color: #27ae60;
+        }
+        
+        .medicine-list {
+            list-style-type: none;
+            margin-top: 15px;
+        }
+        
+        .medicine-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .medicine-item:hover {
+            background-color: #f0f8ff;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .completion-message {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .completion-icon {
+            font-size: 60px;
+            color: #2ecc71;
+            margin-bottom: 20px;
+        }
+        
+        .search-box {
+            margin-bottom: 15px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>医生端医疗流程管理系统</h1>
+            <div class="doctor-info">
+                <p>当前医生：<strong>张医生</strong> | 科室：<strong>内科</strong></p>
+                <p id="current-date">日期：</p>
+            </div>
+        </header>
+        
+        <div class="patient-list">
+            <h3>患者列表</h3>
+            <div class="search-box">
+                <input type="text" id="patient-search" placeholder="搜索患者...">
+            </div>
+            <div id="patient-list-container">
+                <!-- 患者列表将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="patient-info" id="current-patient-info">
+                <!-- 当前患者信息将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-line" id="progress-line"></div>
+                    <div class="step completed" id="step-1">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">挂号</div>
+                    </div>
+                    <div class="step active" id="step-2">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">问诊</div>
+                    </div>
+                    <div class="step" id="step-3">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">收费</div>
+                    </div>
+                    <div class="step" id="step-4">
+                        <div class="step-circle">4</div>
+                        <div class="step-label">治疗</div>
+                    </div>
+                    <div class="step" id="step-5">
+                        <div class="step-circle">5</div>
+                        <div class="step-label">取药</div>
+                    </div>
+                    <div class="step" id="step-6">
+                        <div class="step-circle">6</div>
+                        <div class="step-label">复查</div>
+                    </div>
+                    <div class="step" id="step-7">
+                        <div class="step-circle">7</div>
+                        <div class="step-label">完成</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 挂号阶段 -->
+            <div class="stage active" id="stage-1">
+                <h2 class="stage-title">挂号</h2>
+                <div class="form-group">
+                    <label>患者状态</label>
+                    <p>患者已完成挂号，等待就诊</p>
+                </div>
+                <div class="form-group">
+                    <label>挂号信息</label>
+                    <div id="registration-info">
+                        <!-- 挂号信息将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-prev" disabled>上一步</button>
+                    <button class="btn-next" id="next-to-consultation">前往问诊</button>
+                </div>
+            </div>
+            
+            <!-- 问诊阶段 -->
+            <div class="stage" id="stage-2">
+                <h2 class="stage-title">问诊</h2>
+                <div class="form-group">
+                    <label for="consultation-location">就诊地点</label>
+                    <select id="consultation-location">
+                        <option value="">请选择就诊地点</option>
+                        <option value="内科门诊101">内科门诊101</option>
+                        <option value="内科门诊102">内科门诊102</option>
+                        <option value="专家门诊201">专家门诊201</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="symptoms">症状描述</label>
+                    <textarea id="symptoms" placeholder="请详细描述患者的症状..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="diagnosis">初步诊断</label>
+                    <textarea id="diagnosis" placeholder="医生诊断结果..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="examination">检查项目</label>
+                    <textarea id="examination" placeholder="需要进行的检查项目..."></textarea>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-prev" id="prev-to-registration">返回挂号</button>
+                    <button class="btn-next" id="next-to-payment">保存并前往收费</button>
+                </div>
+            </div>
+            
+            <!-- 收费阶段 -->
+            <div class="stage" id="stage-3">
+                <h2 class="stage-title">收费</h2>
+                <div class="form-group">
+                    <label>收费项目</label>
+                    <div id="payment-items">
+                        <!-- 收费项目将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>支付状态</label>
+                    <select id="payment-status">
+                        <option value="unpaid">未支付</option>
+                        <option value="paid">已支付</option>
+                    </select>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-prev" id="prev-to-consultation">返回问诊</button>
+                    <button class="btn-next" id="next-to-treatment">前往治疗</button>
+                </div>
+            </div>
+            
+            <!-- 治疗阶段 -->
+            <div class="stage" id="stage-4">
+                <h2 class="stage-title">治疗</h2>
+                <div class="form-group">
+                    <label for="treatment-plan">治疗方案</label>
+                    <textarea id="treatment-plan" placeholder="请输入治疗方案..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="treatment-notes">治疗记录</label>
+                    <textarea id="treatment-notes" placeholder="请输入治疗记录..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="report-upload">上传检查报告</label>
+                    <input type="file" id="report-upload" accept="image/*">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-prev" id="prev-to-payment">返回收费</button>
+                    <button class="btn-next" id="next-to-medicine">前往取药</button>
+                </div>
+            </div>
+            
+            <!-- 取药阶段 -->
+            <div class="stage" id="stage-5">
+                <h2 class="stage-title">取药</h2>
+                <div class="form-group">
+                    <label>取药地点</label>
+                    <select id="medicine-location">
+                        <option value="一楼药房3号窗口">一楼药房3号窗口</option>
+                        <option value="二楼药房1号窗口">二楼药房1号窗口</option>
+                        <option value="急诊药房">急诊药房</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>药品清单</label>
+                    <div id="medicine-prescription">
+                        <!-- 药品清单将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>取药状态</label>
+                    <select id="medicine-status">
+                        <option value="unclaimed">未取药</option>
+                        <option value="claimed">已取药</option>
+                    </select>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-prev" id="prev-to-treatment">返回治疗</button>
+                    <button class="btn-next" id="next-to-followup">前往复查</button>
+                </div>
+            </div>
+            
+            <!-- 复查阶段 -->
+            <div class="stage" id="stage-6">
+                <h2 class="stage-title">复查</h2>
+                <div class="form-group">
+                    <label for="followup-content">复查内容</label>
+                    <textarea id="followup-content" placeholder="请输入复查内容..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="followup-date">复查时间</label>
+                    <input type="datetime-local" id="followup-date">
+                </div>
+                <div class="form-group">
+                    <label for="followup-notes">复查备注</label>
+                    <textarea id="followup-notes" placeholder="请输入复查备注..."></textarea>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-prev" id="prev-to-medicine">返回取药</button>
+                    <button class="btn-next" id="next-to-completion">前往完成</button>
+                </div>
+            </div>
+            
+            <!-- 完成阶段 -->
+            <div class="stage" id="stage-7">
+                <h2 class="stage-title">完成</h2>
+                <div class="completion-message">
+                    <div class="completion-icon">✓</div>
+                    <h3>治疗流程已完成！</h3>
+                    <p>患者已完成全部治疗流程，祝患者早日康复！</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-prev" id="prev-to-followup">返回复查</button>
+                    <button class="btn-complete" id="complete-process">完成流程</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 药品信息弹窗 -->
+    <div class="modal" id="medicine-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 id="medicine-name">药品名称</h3>
+            <div id="medicine-info">
+                <!-- 药品信息将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 药品信息数据库
+        const medicines = {
+            '阿莫西林': {
+                name: '阿莫西林胶囊',
+                description: '阿莫西林适用于敏感菌（不产β内酰胺酶菌株）所致的下列感染。',
+                usage: '口服。成人一次0.5g，每6～8小时1次，一日剂量不超过4g。',
+                precautions: '青霉素过敏及青霉素皮肤试验阳性患者禁用。'
+            },
+            '布洛芬': {
+                name: '布洛芬缓释胶囊',
+                description: '用于缓解轻至中度疼痛如头痛、关节痛、偏头痛、牙痛、肌肉痛、神经痛、痛经。',
+                usage: '口服。成人一次0.3g，一日2次。',
+                precautions: '活动性消化道溃疡患者禁用。'
+            },
+            '维生素C': {
+                name: '维生素C片',
+                description: '用于预防坏血病，也可用于各种急慢性传染疾病及紫癜等的辅助治疗。',
+                usage: '口服。成人一次1片，一日3次。',
+                precautions: '不宜长期过量服用本品，否则，突然停药有可能出现坏血病症状。'
+            },
+            '头孢克肟': {
+                name: '头孢克肟片',
+                description: '适用于敏感菌所致的咽炎、扁桃体炎、急性支气管炎和慢性支气管炎急性发作。',
+                usage: '口服。成人一次0.1g，一日2次。',
+                precautions: '对头孢菌素类抗生素有过敏史者禁用。'
+            },
+            '对乙酰氨基酚': {
+                name: '对乙酰氨基酚片',
+                description: '用于普通感冒或流行性感冒引起的发热，也用于缓解轻至中度疼痛。',
+                usage: '口服。成人一次0.3-0.6g，一日3-4次。',
+                precautions: '严重肝肾功能不全者禁用。'
+            }
+        };
+        
+        // 患者数据
+        let patients = [
+            {
+                id: 'P001',
+                name: '张三',
+                age: 45,
+                gender: '男',
+                phone: '138****1234',
+                stage: 2,
+                registrationInfo: {
+                    time: '2023-10-15 09:30',
+                    department: '内科',
+                    doctor: '张医生'
+                },
+                consultationInfo: {},
+                paymentInfo: {},
+                treatmentInfo: {},
+                medicineInfo: {},
+                followupInfo: {}
+            },
+            {
+                id: 'P002',
+                name: '李四',
+                age: 32,
+                gender: '女',
+                phone: '139****5678',
+                stage: 1,
+                registrationInfo: {
+                    time: '2023-10-15 10:15',
+                    department: '内科',
+                    doctor: '张医生'
+                },
+                consultationInfo: {},
+                paymentInfo: {},
+                treatmentInfo: {},
+                medicineInfo: {},
+                followupInfo: {}
+            },
+            {
+                id: 'P003',
+                name: '王五',
+                age: 58,
+                gender: '男',
+                phone: '137****9012',
+                stage: 3,
+                registrationInfo: {
+                    time: '2023-10-14 14:20',
+                    department: '内科',
+                    doctor: '张医生'
+                },
+                consultationInfo: {
+                    location: '内科门诊101',
+                    symptoms: '咳嗽、发热、乏力',
+                    diagnosis: '上呼吸道感染',
+                    examination: '血常规、胸部X光'
+                },
+                paymentInfo: {
+                    items: [
+                        { name: '挂号费', amount: 15.00 },
+                        { name: '检查费', amount: 120.00 },
+                        { name: '药品费', amount: 85.50 }
+                    ],
+                    status: 'unpaid'
+                },
+                treatmentInfo: {},
+                medicineInfo: {},
+                followupInfo: {}
+            }
+        ];
+        
+        // 当前选中的患者和阶段
+        let currentPatientId = 'P001';
+        let currentStage = 1;
+        
+        // 更新日期显示
+        function updateDate() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('current-date').textContent = '日期：' + now.toLocaleDateString('zh-CN', options);
+        }
+        
+        // 更新患者列表
+        function updatePatientList() {
+            const container = document.getElementById('patient-list-container');
+            container.innerHTML = '';
+            
+            patients.forEach(patient => {
+                const patientItem = document.createElement('div');
+                patientItem.className = `patient-item ${patient.id === currentPatientId ? 'active' : ''}`;
+                patientItem.dataset.id = patient.id;
+                
+                const stageLabels = ['挂号', '问诊', '收费', '治疗', '取药', '复查', '完成'];
+                
+                patientItem.innerHTML = `
+                    <div class="patient-name">${patient.name}</div>
+                    <div class="patient-id">ID: ${patient.id}</div>
+                    <div class="patient-stage">${stageLabels[patient.stage - 1]}</div>
+                `;
+                
+                patientItem.addEventListener('click', function() {
+                    currentPatientId = this.dataset.id;
+                    updatePatientList();
+                    loadPatientData();
+                });
+                
+                container.appendChild(patientItem);
+            });
+        }
+        
+        // 加载患者数据
+        function loadPatientData() {
+            const patient = patients.find(p => p.id === currentPatientId);
+            if (!patient) return;
+            
+            // 更新当前患者信息
+            const patientInfo = document.getElementById('current-patient-info');
+            patientInfo.innerHTML = `
+                <div class="info-group">
+                    <div class="info-label">患者姓名</div>
+                    <div>${patient.name}</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">患者ID</div>
+                    <div>${patient.id}</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">年龄/性别</div>
+                    <div>${patient.age}岁 / ${patient.gender}</div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">联系电话</div>
+                    <div>${patient.phone}</div>
+                </div>
+            `;
+            
+            // 更新当前阶段
+            currentStage = patient.stage;
+            updateProgressBar();
+            showStage(currentStage);
+            
+            // 加载各阶段数据
+            loadRegistrationData(patient);
+            loadConsultationData(patient);
+            loadPaymentData(patient);
+            loadTreatmentData(patient);
+            loadMedicineData(patient);
+            loadFollowupData(patient);
+        }
+        
+        // 更新进度条
+        function updateProgressBar() {
+            const progressLine = document.getElementById('progress-line');
+            const progressPercentage = ((currentStage - 1) / 6) * 100;
+            progressLine.style.width = `${progressPercentage}%`;
+            
+            // 更新步骤状态
+            for (let i = 1; i <= 7; i++) {
+                const step = document.getElementById(`step-${i}`);
+                if (i < currentStage) {
+                    step.classList.add('completed');
+                    step.classList.remove('active');
+                } else if (i === currentStage) {
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                } else {
+                    step.classList.remove('active', 'completed');
+                }
+            }
+        }
+        
+        // 显示指定阶段
+        function showStage(stageNumber) {
+            // 隐藏所有阶段
+            document.querySelectorAll('.stage').forEach(stage => {
+                stage.classList.remove('active');
+            });
+            
+            // 显示当前阶段
+            document.getElementById(`stage-${stageNumber}`).classList.add('active');
+        }
+        
+        // 加载挂号数据
+        function loadRegistrationData(patient) {
+            const infoDiv = document.getElementById('registration-info');
+            infoDiv.innerHTML = `
+                <p>挂号时间：${patient.registrationInfo.time}</p>
+                <p>挂号科室：${patient.registrationInfo.department}</p>
+                <p>接诊医生：${patient.registrationInfo.doctor}</p>
+            `;
+        }
+        
+        // 加载问诊数据
+        function loadConsultationData(patient) {
+            if (patient.consultationInfo.location) {
+                document.getElementById('consultation-location').value = patient.consultationInfo.location;
+                document.getElementById('symptoms').value = patient.consultationInfo.symptoms || '';
+                document.getElementById('diagnosis').value = patient.consultationInfo.diagnosis || '';
+                document.getElementById('examination').value = patient.consultationInfo.examination || '';
+            }
+        }
+        
+        // 加载收费数据
+        function loadPaymentData(patient) {
+            const paymentItemsDiv = document.getElementById('payment-items');
+            
+            if (patient.paymentInfo.items) {
+                let itemsHtml = '<ul>';
+                let total = 0;
+                
+                patient.paymentInfo.items.forEach(item => {
+                    itemsHtml += `<li>${item.name}：¥${item.amount.toFixed(2)}</li>`;
+                    total += item.amount;
+                });
+                
+                itemsHtml += `<li><strong>总计：¥${total.toFixed(2)}</strong></li>`;
+                itemsHtml += '</ul>';
+                
+                paymentItemsDiv.innerHTML = itemsHtml;
+                document.getElementById('payment-status').value = patient.paymentInfo.status || 'unpaid';
+            } else {
+                // 默认收费项目
+                paymentItemsDiv.innerHTML = `
+                    <ul>
+                        <li>挂号费：¥15.00</li>
+                        <li>检查费：¥120.00</li>
+                        <li>药品费：¥85.50</li>
+                        <li><strong>总计：¥220.50</strong></li>
+                    </ul>
+                `;
+            }
+        }
+        
+        // 加载治疗数据
+        function loadTreatmentData(patient) {
+            if (patient.treatmentInfo.plan) {
+                document.getElementById('treatment-plan').value = patient.treatmentInfo.plan;
+                document.getElementById('treatment-notes').value = patient.treatmentInfo.notes || '';
+            }
+        }
+        
+        // 加载取药数据
+        function loadMedicineData(patient) {
+            const medicineDiv = document.getElementById('medicine-prescription');
+            
+            if (patient.medicineInfo.items) {
+                let medicineHtml = '<ul class="medicine-list">';
+                
+                patient.medicineInfo.items.forEach(item => {
+                    medicineHtml += `
+                        <li class="medicine-item" data-medicine="${item.name}">
+                            ${item.name} - ${item.dosage}
+                        </li>
+                    `;
+                });
+                
+                medicineHtml += '</ul>';
+                medicineDiv.innerHTML = medicineHtml;
+                
+                // 添加药品点击事件
+                document.querySelectorAll('.medicine-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const medicineName = this.dataset.medicine;
+                        showMedicineInfo(medicineName);
+                    });
+                });
+            } else {
+                // 默认药品清单
+                medicineDiv.innerHTML = `
+                    <ul class="medicine-list">
+                        <li class="medicine-item" data-medicine="阿莫西林">阿莫西林胶囊 - 0.25g × 20粒</li>
+                        <li class="medicine-item" data-medicine="布洛芬">布洛芬缓释胶囊 - 0.3g × 12粒</li>
+                        <li class="medicine-item" data-medicine="维生素C">维生素C片 - 100mg × 30片</li>
+                    </ul>
+                `;
+                
+                // 添加药品点击事件
+                document.querySelectorAll('.medicine-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const medicineName = this.dataset.medicine;
+                        showMedicineInfo(medicineName);
+                    });
+                });
+            }
+            
+            if (patient.medicineInfo.location) {
+                document.getElementById('medicine-location').value = patient.medicineInfo.location;
+            }
+            
+            if (patient.medicineInfo.status) {
+                document.getElementById('medicine-status').value = patient.medicineInfo.status;
+            }
+        }
+        
+        // 加载复查数据
+        function loadFollowupData(patient) {
+            if (patient.followupInfo.content) {
+                document.getElementById('followup-content').value = patient.followupInfo.content;
+                document.getElementById('followup-date').value = patient.followupInfo.date;
+                document.getElementById('followup-notes').value = patient.followupInfo.notes || '';
+            }
+        }
+        
+        // 显示药品信息
+        function showMedicineInfo(medicineName) {
+            const medicine = medicines[medicineName];
+            
+            if (medicine) {
+                document.getElementById('medicine-name').textContent = medicine.name;
+                document.getElementById('medicine-info').innerHTML = `
+                    <p><strong>药品描述：</strong>${medicine.description}</p>
+                    <p><strong>用法用量：</strong>${medicine.usage}</p>
+                    <p><strong>注意事项：</strong>${medicine.precautions}</p>
+                `;
+                
+                document.getElementById('medicine-modal').style.display = 'flex';
+            }
+        }
+        
+        // 保存患者数据
+        function savePatientData() {
+            const patientIndex = patients.findIndex(p => p.id === currentPatientId);
+            if (patientIndex === -1) return;
+            
+            // 保存问诊数据
+            patients[patientIndex].consultationInfo = {
+                location: document.getElementById('consultation-location').value,
+                symptoms: document.getElementById('symptoms').value,
+                diagnosis: document.getElementById('diagnosis').value,
+                examination: document.getElementById('examination').value
+            };
+            
+            // 保存收费数据
+            patients[patientIndex].paymentInfo.status = document.getElementById('payment-status').value;
+            
+            // 保存治疗数据
+            patients[patientIndex].treatmentInfo = {
+                plan: document.getElementById('treatment-plan').value,
+                notes: document.getElementById('treatment-notes').value
+            };
+            
+            // 保存取药数据
+            patients[patientIndex].medicineInfo = {
+                location: document.getElementById('medicine-location').value,
+                status: document.getElementById('medicine-status').value
+            };
+            
+            // 保存复查数据
+            patients[patientIndex].followupInfo = {
+                content: document.getElementById('followup-content').value,
+                date: document.getElementById('followup-date').value,
+                notes: document.getElementById('followup-notes').value
+            };
+            
+            // 更新患者阶段
+            patients[patientIndex].stage = currentStage;
+            
+            // 更新患者列表显示
+            updatePatientList();
+        }
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置当前日期
+            updateDate();
+            
+            // 初始化患者列表
+            updatePatientList();
+            
+            // 加载第一个患者的数据
+            loadPatientData();
+            
+            // 搜索患者
+            document.getElementById('patient-search').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const patientItems = document.querySelectorAll('.patient-item');
+                
+                patientItems.forEach(item => {
+                    const patientName = item.querySelector('.patient-name').textContent.toLowerCase();
+                    const patientId = item.querySelector('.patient-id').textContent.toLowerCase();
+                    
+                    if (patientName.includes(searchTerm) || patientId.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+            
+            // 阶段导航
+            document.getElementById('next-to-consultation').addEventListener('click', function() {
+                currentStage = 2;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('prev-to-registration').addEventListener('click', function() {
+                currentStage = 1;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('next-to-payment').addEventListener('click', function() {
+                const location = document.getElementById('consultation-location').value;
+                const symptoms = document.getElementById('symptoms').value;
+                
+                if (!location || !symptoms) {
+                    alert('请填写完整的问诊信息！');
+                    return;
+                }
+                
+                currentStage = 3;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('prev-to-consultation').addEventListener('click', function() {
+                currentStage = 2;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('next-to-treatment').addEventListener('click', function() {
+                currentStage = 4;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('prev-to-payment').addEventListener('click', function() {
+                currentStage = 3;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('next-to-medicine').addEventListener('click', function() {
+                const plan = document.getElementById('treatment-plan').value;
+                
+                if (!plan) {
+                    alert('请填写治疗方案！');
+                    return;
+                }
+                
+                currentStage = 5;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('prev-to-treatment').addEventListener('click', function() {
+                currentStage = 4;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('next-to-followup').addEventListener('click', function() {
+                currentStage = 6;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('prev-to-medicine').addEventListener('click', function() {
+                currentStage = 5;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('next-to-completion').addEventListener('click', function() {
+                const content = document.getElementById('followup-content').value;
+                const date = document.getElementById('followup-date').value;
+                
+                if (!content || !date) {
+                    alert('请填写完整的复查信息！');
+                    return;
+                }
+                
+                currentStage = 7;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('prev-to-followup').addEventListener('click', function() {
+                currentStage = 6;
+                savePatientData();
+                showStage(currentStage);
+                updateProgressBar();
+            });
+            
+            document.getElementById('complete-process').addEventListener('click', function() {
+                alert('患者治疗流程已完成！');
+                // 在实际应用中，这里可以添加数据提交逻辑
+            });
+            
+            // 关闭药品信息弹窗
+            document.querySelector('.close-modal').addEventListener('click', function() {
+                document.getElementById('medicine-modal').style.display = 'none';
+            });
+            
+            // 点击弹窗外部关闭
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('medicine-modal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
