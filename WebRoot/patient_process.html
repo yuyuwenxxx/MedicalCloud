@@ -6,7 +6,6 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link href="https://cdn.bootcdn.net/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.0/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/main.css">
     <title>患者就医进程 - 医疗云系统</title>
     <style>
         /* 蓝色主色调样式 */
@@ -63,7 +62,7 @@
             font-weight: 600;
         }
         
-        /* 进度条样式 */
+        /* 进度条样式 - 调整为7个步骤 */
         .progress-container {
             position: relative;
             padding: 20px 0;
@@ -87,7 +86,7 @@
             background-color: #0d5fc9;
             z-index: 2;
             transition: width 1s ease;
-            width: 33.3%; /* 默认完成到问诊步骤 */
+            width: 7.142%; /* 7个步骤，初始为第一步的一半宽度 (0.5/7*100) */
         }
         
         .progress-steps {
@@ -104,7 +103,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 16.666%;
+            width: 14.285%; /* 100% / 7个步骤 */
             text-align: center;
         }
         
@@ -173,6 +172,84 @@
             border-left: 4px solid #2196f3;
         }
         
+        /* 检查报告按钮样式 */
+        .report-btn {
+            margin-top: 15px;
+        }
+        
+        /* 取药单样式 */
+        .prescription-card {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .prescription-header {
+            background-color: #0d5fc9;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+        }
+        
+        .prescription-body {
+            padding: 15px;
+        }
+        
+        .prescription-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .prescription-item:last-child {
+            border-bottom: none;
+        }
+        
+        .medicine-name {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .medicine-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        /* 二维码样式 */
+        .qrcode-section {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .qrcode-container {
+            display: inline-block;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-top: 15px;
+        }
+        
+        .qrcode-image {
+            width: 200px;
+            height: 200px;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+        }
+        
+        .qrcode-text {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        
         .footer {
             background-color: #0d5fc9;
             color: white;
@@ -198,6 +275,10 @@
             
             .header h1 {
                 font-size: 1.8em !important;
+            }
+            
+            .prescription-item {
+                flex-direction: column;
             }
         }
     </style>
@@ -238,17 +319,17 @@
             <!-- 患者名字标题 -->
             <h2 class="process-title" id="patientName">张三 的就医进程</h2>
             
-            <!-- 进度条 -->
+            <!-- 进度条 - 现在有7个步骤 -->
             <div class="progress-container">
                 <div class="progress-line"></div>
                 <div class="progress-line-active" id="progressBar"></div>
                 
                 <ul class="progress-steps">
-                    <li class="progress-step completed" data-step="1">
+                    <li class="progress-step active" data-step="1">
                         <div class="step-circle">📋</div>
                         <div class="step-text">挂号</div>
                     </li>
-                    <li class="progress-step active" data-step="2">
+                    <li class="progress-step" data-step="2">
                         <div class="step-circle">👨‍⚕️</div>
                         <div class="step-text">问诊</div>
                     </li>
@@ -257,14 +338,18 @@
                         <div class="step-text">收费</div>
                     </li>
                     <li class="progress-step" data-step="4">
+                        <div class="step-circle">🔬</div>
+                        <div class="step-text">检查</div>
+                    </li>
+                    <li class="progress-step" data-step="5">
                         <div class="step-circle">💊</div>
                         <div class="step-text">取药</div>
                     </li>
-                    <li class="progress-step" data-step="5">
+                    <li class="progress-step" data-step="6">
                         <div class="step-circle">🔍</div>
                         <div class="step-text">复查</div>
                     </li>
-                    <li class="progress-step" data-step="6">
+                    <li class="progress-step" data-step="7">
                         <div class="step-circle">✅</div>
                         <div class="step-text">完成</div>
                     </li>
@@ -273,23 +358,99 @@
             
             <!-- 当前步骤详情 -->
             <div class="step-details" id="currentStepDetails">
-                <h3>当前步骤：问诊</h3>
-                <p><strong>科室：</strong>内科</p>
-                <p><strong>医生：</strong>李医生</p>
-                <p><strong>诊室：</strong>内科诊室 3</p>
-                <p><strong>排队号：</strong>15号</p>
-                <p><strong>前方等待：</strong>3人</p>
-                <p><strong>预计时间：</strong>约30分钟后</p>
+                <h3>当前步骤：挂号</h3>
+                <p><strong>状态：</strong>正在办理挂号手续</p>
+                <p><strong>窗口：</strong>挂号窗口 2</p>
+                <p><strong>预计时间：</strong>约5分钟</p>
+            </div>
+            
+            <!-- 检查报告区域（仅在第4步显示） -->
+            <div id="reportSection" style="display: none;">
+                <div class="step-details">
+                    <h3>检查报告</h3>
+                    <p>您的检查已完成，可以查看检查报告。</p>
+                    <button class="btn btn-primary report-btn" onclick="viewReport()">查看检查报告</button>
+                </div>
+            </div>
+            
+            <!-- 取药单区域（仅在第5步显示） -->
+            <div id="prescriptionSection" style="display: none;">
+                <div class="step-details">
+                    <h3>取药单</h3>
+                    <p>您的药品已准备就绪，请到药房取药。</p>
+                    
+                    <div class="prescription-card">
+                        <div class="prescription-header">
+                            处方单
+                        </div>
+                        <div class="prescription-body">
+                            <div class="prescription-item">
+                                <div>
+                                    <div class="medicine-name">阿莫西林胶囊</div>
+                                    <div class="medicine-details">0.25g × 24粒</div>
+                                </div>
+                                <div>
+                                    <div>用法：口服，一日3次，一次2粒</div>
+                                    <div>疗程：4天</div>
+                                </div>
+                            </div>
+                            <div class="prescription-item">
+                                <div>
+                                    <div class="medicine-name">布洛芬缓释胶囊</div>
+                                    <div class="medicine-details">0.3g × 12粒</div>
+                                </div>
+                                <div>
+                                    <div>用法：口服，一日2次，一次1粒</div>
+                                    <div>疗程：3天</div>
+                                </div>
+                            </div>
+                            <div class="prescription-item">
+                                <div>
+                                    <div class="medicine-name">复方甘草片</div>
+                                    <div class="medicine-details">100片</div>
+                                </div>
+                                <div>
+                                    <div>用法：口服，一日3次，一次2片</div>
+                                    <div>疗程：5天</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 满意度调查二维码区域（仅在第7步显示） -->
+            <div id="satisfactionSection" style="display: none;">
+                <div class="step-details">
+                    <h3>满意度调查</h3>
+                    <p>感谢您使用医疗云系统，请参与我们的满意度调查。</p>
+                    <button class="btn btn-success" onclick="toggleQRCode()">扫描二维码参与满意度调查</button>
+                    
+                    <div class="qrcode-section" id="qrcodeSection">
+                        <div class="qrcode-container">
+                            <div class="qrcode-image">
+                                <!-- 这里可以放置真实的二维码图片 -->
+                                <div style="text-align: center;">
+                                    <div style="font-size: 14px; color: #666;">[二维码图片]</div>
+                                    <div style="font-size: 12px; color: #999; margin-top: 10px;">请使用手机扫描</div>
+                                </div>
+                            </div>
+                            <div class="qrcode-text">
+                                扫描二维码参与满意度调查<br>
+                                帮助我们改进服务质量
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- 下一步提示 -->
             <div class="next-step-info">
-                <h4>就诊提示</h4>
+                <h4>挂号提示</h4>
                 <ul>
-                    <li>请提前15分钟到达诊室门口等候</li>
-                    <li>请携带好您的身份证和医保卡</li>
-                    <li>进入诊室前请先测量体温并登记</li>
-                    <li>如有特殊情况请及时联系导诊台</li>
+                    <li>请准备好您的身份证或医保卡</li>
+                    <li>挂号费用可现金或刷卡支付</li>
+                    <li>如需预约其他科室请提前告知</li>
                 </ul>
             </div>
             
@@ -297,6 +458,7 @@
             <div class="text-center" style="margin-top: 30px;">
                 <a href="login.html" class="btn btn-primary">返回首页</a>
                 <button class="btn btn-default" onclick="updateProgress()" style="margin-left: 20px;">模拟进度更新</button>
+                <button class="btn btn-info" onclick="resetProgress()" style="margin-left: 20px;">重置进度</button>
             </div>
         </div>
     </div>
@@ -314,7 +476,7 @@
             var currentStepNum = parseInt(currentStep.attr('data-step'));
             
             // 如果还没有完成所有步骤
-            if (currentStepNum < 6) {
+            if (currentStepNum < 7) {
                 // 将当前步骤标记为已完成
                 currentStep.removeClass('active').addClass('completed');
                 
@@ -322,14 +484,55 @@
                 var nextStep = $('.progress-step[data-step="' + (currentStepNum + 1) + '"]');
                 nextStep.addClass('active');
                 
-                // 更新进度条
-                var progressPercent = (currentStepNum / 6) * 100;
-                $('#progressBar').css('width', progressPercent + '%');
+                // 更新进度条宽度
+                updateProgressBar();
                 
                 // 更新当前步骤详情
                 updateStepDetails(currentStepNum + 1);
+                
+                // 显示或隐藏特殊区域
+                toggleSpecialSections(currentStepNum + 1);
             } else {
+                // 如果是最后一步，确保进度条完全填满
+                $('#progressBar').css('width', '100%');
                 alert('就医流程已完成！');
+            }
+        }
+        
+        // 重置进度函数
+        function resetProgress() {
+            // 重置所有步骤状态
+            $('.progress-step').removeClass('active completed');
+            
+            // 设置第一步为活动状态
+            $('.progress-step[data-step="1"]').addClass('active');
+            
+            // 重置进度条到第一步的一半位置
+            $('#progressBar').css('width', '7.142%');
+            
+            // 重置步骤详情
+            updateStepDetails(1);
+            
+            // 隐藏特殊区域
+            $('#reportSection').hide();
+            $('#prescriptionSection').hide();
+            $('#satisfactionSection').hide();
+            $('#qrcodeSection').hide();
+        }
+        
+        // 更新进度条宽度
+        function updateProgressBar() {
+            var activeStep = $('.progress-step.active');
+            var activeStepNum = parseInt(activeStep.attr('data-step'));
+            
+            // 计算进度条宽度
+            // 对于最后一步，进度条应该完全填满
+            if (activeStepNum === 7) {
+                $('#progressBar').css('width', '100%');
+            } else {
+                // 对于其他步骤，进度条连接到当前步骤的圆圈中心
+                var progressWidth = ((activeStepNum - 0.5) / 7 * 100) + '%';
+                $('#progressBar').css('width', progressWidth);
             }
         }
         
@@ -352,14 +555,18 @@
                     nextStepContent = '<h4>缴费提示</h4><ul><li>请妥善保管好您的收费单据</li><li>医保患者请出示医保卡</li><li>如需发票请向收费员说明</li></ul>';
                     break;
                 case 4:
+                    detailsContent = '<h3>当前步骤：检查</h3><p><strong>检查项目：</strong>血常规、CT胸部平扫</p><p><strong>检查科室：</strong>检验科、放射科</p><p><strong>预计时间：</strong>血常规约1小时，CT约2小时</p><p><strong>注意事项：</strong>CT检查前请去除金属物品</p>';
+                    nextStepContent = '<h4>检查提示</h4><ul><li>请按预约时间到达相应检查科室</li><li>血常规检查无需特殊准备</li><li>CT检查请勿佩戴金属饰品</li><li>检查结果可在自助机或手机App查询</li></ul>';
+                    break;
+                case 5:
                     detailsContent = '<h3>当前步骤：取药</h3><p><strong>药房：</strong>西药房</p><p><strong>窗口：</strong>3号窗口</p><p><strong>药品数量：</strong>3种</p><p><strong>等待时间：</strong>约10分钟</p>';
                     nextStepContent = '<h4>取药提示</h4><ul><li>请准备好您的处方单和缴费凭证</li><li>取药时请核对药品名称和数量</li><li>请向药师咨询用药方法和注意事项</li></ul>';
                     break;
-                case 5:
+                case 6:
                     detailsContent = '<h3>当前步骤：复查</h3><p><strong>复查项目：</strong>血常规</p><p><strong>科室：</strong>检验科</p><p><strong>检查时间：</strong>3天后上午9:00</p><p><strong>注意事项：</strong>需空腹</p>';
                     nextStepContent = '<h4>复查提示</h4><ul><li>请按时到达检验科</li><li>检查前一天晚上10点后请勿进食</li><li>携带好您的就诊卡和身份证</li></ul>';
                     break;
-                case 6:
+                case 7:
                     detailsContent = '<h3>当前步骤：完成</h3><p><strong>就诊状态：</strong>已完成</p><p><strong>医嘱：</strong>注意休息，按时服药</p><p><strong>随访：</strong>我们将在一周后进行电话随访</p><p><strong>满意度调查：</strong>请扫描二维码参与满意度评价</p>';
                     nextStepContent = '<h4>就诊完成</h4><ul><li>感谢您使用医疗云系统</li><li>如有不适请及时复诊</li><li>祝您健康愉快</li></ul>';
                     break;
@@ -369,9 +576,39 @@
             $('.next-step-info').html(nextStepContent);
         }
         
+        // 显示或隐藏特殊区域（检查报告、取药单和满意度调查）
+        function toggleSpecialSections(stepNum) {
+            // 隐藏所有特殊区域
+            $('#reportSection').hide();
+            $('#prescriptionSection').hide();
+            $('#satisfactionSection').hide();
+            
+            // 根据当前步骤显示相应的特殊区域
+            if (stepNum === 4) {
+                $('#reportSection').show();
+            } else if (stepNum === 5) {
+                $('#prescriptionSection').show();
+            } else if (stepNum === 7) {
+                $('#satisfactionSection').show();
+            }
+        }
+        
+        // 查看检查报告
+        function viewReport() {
+            alert('正在跳转到检查报告页面...\n\n注意：检查报告页面尚未开发完成，目前没有可用的检查报告。');
+            // 在实际应用中，这里应该跳转到检查报告页面
+            // window.location.href = 'medical_report.html';
+        }
+        
+        // 切换二维码显示/隐藏
+        function toggleQRCode() {
+            $('#qrcodeSection').slideToggle();
+        }
+        
         // 页面加载完成后初始化
         $(document).ready(function() {
-            // 可以在这里添加更多初始化代码
+            // 初始化进度条宽度为第一步的一半位置
+            $('#progressBar').css('width', '7.142%');
             console.log('就医进程页面加载完成');
         });
     </script>
