@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>预约挂号 - 医疗云系统</title>
+
+        <!-- Bootstrap CSS -->
+        <link
+            href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.0/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                font-family: "Microsoft YaHei", Arial, sans-serif;
+                margin: 0;
+                background-color: #f8f9fa;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+            .header {
+                background: linear-gradient(135deg, #1e66d9, #0c57c2);
+                color: white;
+                padding: 20px 0;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .header h1 {
+                margin: 0;
+                font-size: 2.5em;
+                font-weight: 600;
+            }
+            /* 覆盖 Bootstrap 导航栏颜色 */
+            .navbar-default {
+                background-color: #0d5fc9;
+                border: none;
+                border-radius: 0;
+            }
+            .navbar-default .navbar-brand,
+            .navbar-default .navbar-nav > li > a {
+                color: white !important;
+            }
+            .navbar-default .navbar-nav > li > a:hover,
+            .navbar-default .navbar-nav > li > a:focus {
+                background-color: #0a4eaa !important;
+                color: white !important;
+            }
+
+            .main-content {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                padding: 20px;
+                gap: 20px;
+            }
+            .list-panel {
+                background-color: white;
+                border-radius: 6px;
+                padding: 10px;
+                flex: 0 0 180px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                max-height: 600px;
+                overflow-y: auto;
+            }
+            .list-panel h3 {
+                margin-top: 0;
+                font-size: 1.2em;
+                text-align: center;
+            }
+            .list-item {
+                background-color: #fff;
+                padding: 10px;
+                margin: 6px 0;
+                border-radius: 4px;
+                cursor: pointer;
+                border: 1px solid #ddd;
+                transition: 0.2s;
+                text-align: center;
+            }
+            .list-item:hover {
+                background-color: #f0f8ff;
+            }
+            .list-item.selected {
+                background-color: #5bc0f8;
+                color: white;
+                border-color: #5bc0f8;
+            }
+            .appointment-panel {
+                background-color: white;
+                border-radius: 6px;
+                padding: 20px;
+                flex: 0 0 300px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                max-height: 600px;
+            }
+            .form-group label {
+                font-weight: bold;
+            }
+            input[type="text"],
+            input[type="date"] {
+                width: 100%;
+                padding: 8px;
+                margin-top: 6px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+            .btn-primary {
+                width: 100%;
+                padding: 10px;
+                margin-top: 10px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 1em;
+                background-color: #0d5fc9;
+                color: white;
+            }
+            .btn-primary:hover {
+                background-color: #0a4eaa;
+            }
+            .footer {
+                background-color: #0d5fc9;
+                color: white;
+                padding: 15px 0;
+                text-align: center;
+                width: 100%;
+                box-sizing: border-box;
+                margin-top: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="container">
+                <h1>医疗云系统</h1>
+                <p>智慧医疗，便捷服务</p>
+            </div>
+        </div>
+
+        <!-- 横向 Bootstrap 导航栏 -->
+        <nav class="navbar navbar-default">
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="login.html">医疗云首页</a>
+                </div>
+                <ul class="nav navbar-nav">
+                    <li><a href="login.html">首页</a></li>
+                    <li><a href="login.html#registration">预约挂号</a></li>
+                    <li><a href="login.html#history">看病历史</a></li>
+                    <li><a href="login.html#profile">我的信息</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">登录</a></li>
+                    <li><a href="#">注册</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="list-panel" id="deptPanel"><h3>科室</h3></div>
+            <div class="list-panel" id="doctorPanel"><h3>医生</h3></div>
+            <div class="list-panel" id="timePanel"><h3>时间</h3></div>
+
+            <div class="appointment-panel">
+                <h3>预约信息</h3>
+                <div class="form-group">
+                    <label for="patientName">患者姓名</label>
+                    <input
+                        type="text"
+                        id="patientName"
+                        placeholder="请输入姓名"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="date">预约日期</label>
+                    <input type="date" id="date" />
+                </div>
+                <div id="remainingInfo" style="margin-top: 10px; display: none">
+                    剩余号源：<span id="remainingCount">0</span>
+                </div>
+                <button class="btn-primary" id="btnSubmit">提交预约</button>
+            </div>
+        </div>
+
+        <div class="footer">医疗云系统 &copy; 2023 版权所有</div>
+
+        <!-- Bootstrap JS (可选，用于响应式菜单) -->
+        <script src="https://cdn.bootcdn.net/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+        <script>
+            const doctorMap = {
+                内科: ["李医生", "刘医生"],
+                外科: ["王医生", "赵医生"],
+                妇产科: ["陈医生", "钱医生"],
+                儿科: ["孙医生", "周医生"],
+                皮肤科: ["吴医生", "郑医生"],
+            };
+            const timeSlots = [
+                "08:00-09:00",
+                "09:00-10:00",
+                "10:00-11:00",
+                "11:00-12:00",
+                "14:00-15:00",
+                "15:00-16:00",
+                "16:00-17:00",
+            ];
+            const availabilityMap = {};
+            let selectedDept = null,
+                selectedDoctor = null,
+                selectedTime = null;
+            const deptPanel = document.getElementById("deptPanel");
+            const doctorPanel = document.getElementById("doctorPanel");
+            const timePanel = document.getElementById("timePanel");
+            const dateInput = document.getElementById("date");
+            const remainingInfo = document.getElementById("remainingInfo");
+            const remainingCount = document.getElementById("remainingCount");
+
+            const today = new Date().toISOString().split("T")[0];
+            dateInput.min = today;
+
+            function makeKey(dept, doctor, date, time) {
+                return dept + "__" + doctor + "__" + date + "__" + time;
+            }
+
+            function renderDept() {
+                deptPanel.innerHTML = "<h3>科室</h3>";
+                Object.keys(doctorMap).forEach((d) => {
+                    const div = document.createElement("div");
+                    div.className = "list-item";
+                    div.innerText = d;
+                    div.onclick = () => {
+                        selectedDept = d;
+                        selectedDoctor = null;
+                        selectedTime = null;
+                        highlightSelection(deptPanel, d);
+                        renderDoctor(d);
+                        renderTime([]);
+                        clearRemaining();
+                    };
+                    deptPanel.appendChild(div);
+                });
+            }
+
+            function renderDoctor(dept) {
+                doctorPanel.innerHTML = "<h3>医生</h3>";
+                (doctorMap[dept] || []).forEach((doc) => {
+                    const div = document.createElement("div");
+                    div.className = "list-item";
+                    div.innerText = doc;
+                    div.onclick = () => {
+                        selectedDoctor = doc;
+                        selectedTime = null;
+                        highlightSelection(doctorPanel, doc);
+                        renderTime(timeSlots);
+                        clearRemaining();
+                    };
+                    doctorPanel.appendChild(div);
+                });
+            }
+
+            function renderTime(times) {
+                timePanel.innerHTML = "<h3>时间</h3>";
+                times.forEach((t) => {
+                    const div = document.createElement("div");
+                    div.className = "list-item";
+                    div.innerText = t;
+                    div.onclick = () => {
+                        selectedTime = t;
+                        highlightSelection(timePanel, t);
+                        updateAvailability();
+                    };
+                    timePanel.appendChild(div);
+                });
+            }
+
+            function highlightSelection(panel, text) {
+                Array.from(panel.querySelectorAll(".list-item")).forEach(
+                    (item) => {
+                        item.classList.toggle(
+                            "selected",
+                            item.innerText === text,
+                        );
+                    },
+                );
+            }
+
+            function clearRemaining() {
+                remainingInfo.style.display = "none";
+                remainingCount.innerText = "0";
+            }
+
+            function updateAvailability() {
+                if (
+                    !selectedDept ||
+                    !selectedDoctor ||
+                    !selectedTime ||
+                    !dateInput.value
+                )
+                    return;
+                const key = makeKey(
+                    selectedDept,
+                    selectedDoctor,
+                    dateInput.value,
+                    selectedTime,
+                );
+                if (availabilityMap[key] === undefined)
+                    availabilityMap[key] = Math.floor(Math.random() * 6);
+                remainingCount.innerText = availabilityMap[key];
+                remainingInfo.style.display = "block";
+            }
+
+            dateInput.addEventListener("change", updateAvailability);
+
+            document.getElementById("btnSubmit").onclick = () => {
+                const name = document.getElementById("patientName").value;
+                if (
+                    !name ||
+                    !selectedDept ||
+                    !selectedDoctor ||
+                    !selectedTime ||
+                    !dateInput.value
+                ) {
+                    alert("请填写完整信息并选择科室、医生、时间和日期");
+                    return;
+                }
+                const selectedDate = new Date(dateInput.value);
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                if (selectedDate < now) {
+                    alert("不能预约过去的日期");
+                    return;
+                }
+
+                const key = makeKey(
+                    selectedDept,
+                    selectedDoctor,
+                    dateInput.value,
+                    selectedTime,
+                );
+                if (availabilityMap[key] <= 0) {
+                    alert("该时间已满，请选择其他时间或医生");
+                    return;
+                }
+                availabilityMap[key]--;
+                alert(
+                    `预约成功！\n患者：${name}\n科室：${selectedDept}\n医生：${selectedDoctor}\n日期：${dateInput.value}\n时间：${selectedTime}`,
+                );
+                window.location.href = "login.html";
+            };
+
+            renderDept();
+        </script>
+    </body>
+</html>
